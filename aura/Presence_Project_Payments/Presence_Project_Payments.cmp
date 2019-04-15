@@ -1,0 +1,137 @@
+<aura:component controller="PresenceProjectPaymentApx" implements="flexipage:availableForAllPageTypes" >
+    <!-- References:
+    https://salesforce.stackexchange.com/questions/195411/how-to-use-lightningoutputfield-and-lightninginputfield-inside-an-auraiterati
+ https://salesforce.stackexchange.com/questions/191347/how-can-i-set-the-width-of-a-lightninginput-type-search-without-using-pixels
+   -->
+    <aura:attribute name="apexObject" type="Object" />
+    <aura:attribute name="msgFromJavascript" type="string" />
+    <aura:attribute name="msgFromJavascriptExists" type="Boolean" default="false"/>
+    <aura:attribute name="createPaymentClicked" type="Boolean" default="false"/> 
+    <aura:attribute name="createPaymentPersonId" type="string" />   
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>     
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    
+    <div class="slds-box slds-theme_default">       
+        <div class="slds-page-header">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__figure">
+                        </div>
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="Presence Project Payments">Presence Project Payments</span>
+                                    </h1>
+                                </div>
+                            </div>
+                            <p class="slds-page-header__name-meta">{!v.apexObject.numPayers} Payers • {!v.apexObject.numPayments} Payments • {!v.apexObject.todaysDateTime}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>             
+        
+        <!--Display messages-->
+        <aura:if isTrue="{!(v.apexObject.messagesExist || v.msgFromJavascriptExists)}">
+            <ui:message title="" severity="warning" closable="false">
+                <!-- Possible severity values: message (default), confirm, info, warning, error	 -->
+                <aura:iteration items="{!v.apexObject.messages}" var="message">
+                    {!message}<br/>
+                </aura:iteration>
+                <br/>
+                {!v.msgFromJavascript}<br/>
+            </ui:message>
+        </aura:if>
+        
+        <aura:if isTrue="{!v.showSpinner}">
+            <lightning:spinner size="medium" variant="brand" />
+        </aura:if>
+        
+        <div class="slds-scrollable_y" style="height:100%;">            
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">                
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th>Payer Name</th>
+                        <th>Project Name</th>
+                        <th>Total  |  Payment Amount</th>
+                        <th>Latest  |  Payment Date</th> 
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.apexObject.personsPayments}" var="personPayments" indexVar="rowIndex">
+                        <tr>
+                            <th  data-index="{!rowIndex}" onclick="{!c.toggle}">  
+                                {!personPayments.person.Name}
+                            </th>
+                            <td  data-index="{!rowIndex}" onclick="{!c.toggle}"></td>
+                            <td  data-index="{!rowIndex}" onclick="{!c.toggle}">
+                                <lightning:formattedNumber value="{!personPayments.person.Total_Payments_Amount__c}" style="currency" currencyCode="USD" />
+                            </td>
+                            <td  data-index="{!rowIndex}" onclick="{!c.toggle}">
+                                <lightning:formattedDateTime value="{!personPayments.person.Last_Payment_Date__c}" year="numeric" month="2-digit" day="2-digit"  timeZone="UTC"/>
+                            </td>   
+                            <td>
+                                <lightning:button variant="Neutral" label="Create Payment" title="Payment add action" value="{!personPayments.person.Id}" onclick="{!c.handleCreateClick }"/>
+                            </td>                          
+                        </tr>                        
+                        
+                        <aura:if isTrue="{!and(v.createPaymentClicked, (v.createPaymentPersonId == personPayments.person.Id))}">
+                            <tr>
+                                <th></th>
+                                <td>                                    
+                                    <lightning:recordEditForm aura:id="ProjectSelection"  objectApiName="Payment__c">
+                                        <lightning:messages />
+                                        <lightning:inputField  aura:id="insertPaymentProject" fieldName="Project__c" value="" onchange="{!c.clearJsMessage}"  />
+                                    </lightning:recordEditForm>
+                                    
+                                </td>
+                                <td>
+                                    <lightning:layoutItem size="11">
+                                        <lightning:input aura:id="insertPaymentAmount" name="" type="number" value="" onfocus="{!c.clearMessage}" formatter="currency" step="0.01" variant="label-hidden" class="rightJustify" />                            
+                                    </lightning:layoutItem>
+                                </td>
+                                <td>
+                                    <lightning:layoutItem size="10">
+                                        <lightning:input aura:id="insertPaymentDate" name="" value="" onfocus="{!c.clearMessage}" onblur="{!c.handleDateChange}" variant="label-hidden" class="rightJustify" />                                    
+                                    </lightning:layoutItem>
+                                </td>     
+                                <td>
+                                    <lightning:button variant="Neutral" label="Insert" title="Payment insert action" value="{!personPayments.person.Id}" onclick="{!c.handleInsertClick }"/>
+                                    <lightning:button variant="Neutral" label="Cancel" title="Payment insert cancel" value="" onclick="{!c.handleInsertCancel}"/>
+                                </td>                          
+                            </tr>                            
+                        </aura:if>                        
+                        
+                        <aura:if isTrue="{!personPayments.expanded}">
+                            <aura:iteration items="{!personPayments.payments}" var="payment">
+                                <tr>             
+                                    <td data-index="{!rowIndex}" onclick="{!c.toggle}"></td>
+                                    <td data-index="{!rowIndex}" onclick="{!c.toggle}" >
+                                        {!payment.Project__r.Project_Name__c}
+                                    </td>
+                                    <td data-index="{!rowIndex}" onclick="{!c.toggle}" >
+                                        <lightning:layoutItem size="11">
+                                            <lightning:input aura:id="paymentAmount" name="{!payment.Id}" type="number" value="{!payment.Amount__c}" onfocus="{!c.clearMessage}" formatter="currency" step="0.01" variant="label-hidden" class="rightJustify" />
+                                        </lightning:layoutItem>
+                                    </td>
+                                    <td>
+                                        <lightning:layoutItem size="10">
+                                            <lightning:input aura:id="paymentDate" name="{!payment.Id}" value="{!payment.DateString__c}" onfocus="{!c.clearMessage}" onblur="{!c.handleDateChange}" variant="label-hidden" class="rightJustify" />                                    
+                                        </lightning:layoutItem>
+                                    </td>
+                                    <td>
+                                        <lightning:button variant="Neutral" label="Update" title="Payment update action" value="{!payment.Id}" onclick="{!c.handleUpdateClick}"/>
+                                        <lightning:button variant="Neutral" label="Delete" title="Payment delete action" value="{!payment.Id}" onclick="{!c.handleDeleteClick}"/>
+                                    </td>                          
+                                </tr>
+                            </aura:iteration>
+                        </aura:if>
+                    </aura:iteration>
+                </tbody>
+            </table>            
+        </div>
+    </div>
+</aura:component>
