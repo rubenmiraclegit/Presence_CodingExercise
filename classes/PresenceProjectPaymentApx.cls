@@ -283,6 +283,7 @@ public with sharing class PresenceProjectPaymentApx {
     // Constructors
     // Methods (static entry methods)
     @AuraEnabled 
+    public static ProjectPayment getPayments() { return getPayments(false); }
     public static ProjectPayment getPayments(boolean isExceptionTest) {
         ProjectPayment pp = new ProjectPayment();
         try {       // Outer TryCatch will handle exceptions crudely by sending an email directly from this Apex
@@ -321,8 +322,8 @@ public with sharing class PresenceProjectPaymentApx {
         }  
         return pp;
     }
-    public static ProjectPayment getPayments() { return getPayments(false); }
     @AuraEnabled 
+    public static ProjectPayment insertPayment(string personId, string projectId, string paymentDate, string paymentAmt) { return insertPayment(personId, projectId, paymentDate, paymentAmt, false); }
     public static ProjectPayment insertPayment(string personId, string projectId, string paymentDate, string paymentAmt, boolean isExceptionTest) {
         ProjectPayment pp = new ProjectPayment();
         try {       // Outer TryCatch will handle exceptions crudely by sending an email directly from this Apex
@@ -366,8 +367,8 @@ public with sharing class PresenceProjectPaymentApx {
         }  
         return pp;
     }
-    public static ProjectPayment insertPayment(string personId, string projectId, string paymentDate, string paymentAmt) { return insertPayment(personId, projectId, paymentDate, paymentAmt, false); }
     @AuraEnabled 
+    public static ProjectPayment updatePayment(string paymentId, string newPaymentDate, decimal newPaymentAmt) { return updatePayment(paymentId, newPaymentDate, newPaymentAmt, false); }
     public static ProjectPayment updatePayment(string paymentId, string newPaymentDate, decimal newPaymentAmt, boolean isExceptionTest) {
         ProjectPayment pp = new ProjectPayment();
         try {       // Outer TryCatch will handle exceptions crudely by sending an email directly from this Apex
@@ -412,8 +413,8 @@ public with sharing class PresenceProjectPaymentApx {
         }  
         return pp;
     }
-    public static ProjectPayment updatePayment(string paymentId, string newPaymentDate, decimal newPaymentAmt) { return updatePayment(paymentId, newPaymentDate, newPaymentAmt, false); }
     @AuraEnabled 
+    public static ProjectPayment deletePayment(string paymentId) { return deletePayment(paymentId, false); }
     public static ProjectPayment deletePayment(string paymentId, boolean isExceptionTest) {
         ProjectPayment pp = new ProjectPayment();
         try {       // Outer TryCatch will handle exceptions crudely by sending an email directly from this Apex
@@ -456,7 +457,6 @@ public with sharing class PresenceProjectPaymentApx {
         }  
         return pp;
     }
-    public static ProjectPayment deletePayment(string paymentId) { return deletePayment(paymentId, false); }
                       
     // Methods (static, non-entry)
     // Methods (non-static class methods)
